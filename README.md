@@ -16,7 +16,7 @@ Le code se développe **chez soi en simulation** (faux robot). On le teste sur l
 1. **Git** : https://git-scm.com/download/win (garder toutes les options par défaut).
 2. **Python 3.8** : https://www.python.org/downloads/release/python-3810/ (cocher « Add Python to PATH »). **Python 3.8 est obligatoire** : le SDK du robot ne marche pas avec 3.9 ou plus.
 3. **VS Code** (recommandé) : https://code.visualstudio.com/
-4. Un compte **GitHub** : https://github.com. Donner ton pseudo à Pierre-Olivier pour être invité au dépôt, puis **accepter l'invitation** (reçue par email).
+4. Un compte **GitHub** : https://github.com. Donner ton pseudo à Pierre-Olivier pour être invité au dépôt, puis **accepter l'invitation** (reçue par email, ou sur https://github.com/PierreOlivier-28/robomaster-projet_EP/invitations).
 
 ### 1.2 Configurer Git (ouvrir PowerShell)
 ```powershell
@@ -55,6 +55,12 @@ python main.py s1
 - `main.py s1` doit afficher des lignes `front=... cm cmd=...` pendant 10 secondes (le faux robot avance, puis tourne quand un obstacle est proche).
 
 Si ça marche, ton poste est prêt.
+
+### 1.6 Ouvrir le projet dans VS Code (optionnel)
+```powershell
+code .
+```
+VS Code peut proposer d'utiliser l'interpréteur Python du `venv` : accepte. Sinon : `Ctrl+Shift+P` → « Python: Select Interpreter » → choisis celui de `venv`.
 
 ---
 
@@ -118,23 +124,24 @@ Les fois suivantes : `git push`.
 ### Étape 6 : ouvrir la pull request
 1. Sur GitHub, ouvre le dépôt. Un bandeau jaune **Compare & pull request** apparaît : clique dessus.
 2. Remplis la description et la **checklist** (tests, robot, registre IA).
-3. À droite, dans **Reviewers**, choisis un coéquipier (voir section 6).
-4. Si ton code doit être testé sur le robot, ajoute le label **`à-tester-robot`**.
-5. Clique sur **Create pull request**.
+3. À droite, dans **Reviewers**, choisis un coéquipier (voir section 5).
+4. Si ton code doit être testé sur le robot, ajoute le label **`à-tester-robot`** (colonne **Labels**, à droite).
+5. Clique sur **Create pull request** (pas « draft » : un brouillon ne peut pas être fusionné).
 
 ### Étape 7 : relire (si on te demande une relecture)
 1. Ouvre la PR, onglet **Files changed**.
 2. Lis le code. Pour commenter une ligne, clique sur le `+` bleu à gauche de la ligne.
 3. En haut à droite : **Review changes** → **Approve** (ou **Request changes** s'il y a un problème) → **Submit review**.
-4. Ce n'est pas à toi de merger si ce n'est pas ta PR : c'est l'auteur qui clique ensuite sur **Merge pull request**, quand tout est vert.
+4. Ce n'est pas à toi de fusionner si ce n'est pas ta PR : c'est l'auteur qui clique ensuite sur **Merge pull request**, quand tout est vert.
 
-### Étape 8 : nettoyer après le merge
+### Étape 8 : fusionner et nettoyer
+Sur GitHub, l'auteur clique sur **Merge pull request** en gardant le mode **Create a merge commit** (pas « Squash » ni « Rebase »), puis **Confirm merge** et **Delete branch**. Ensuite, sur ton PC :
 ```powershell
 git checkout main
 git pull
 git branch -d s2/tracking-yolo
 ```
-Puis recommence à l'étape 1 pour la tâche suivante.
+Si Git répond « not fully merged » alors que ta PR est bien fusionnée sur GitHub, utilise `git branch -D s2/tracking-yolo`. Puis recommence à l'étape 1 pour la tâche suivante.
 
 ---
 
