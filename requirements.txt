@@ -1,0 +1,8 @@
+# Python 3.8 obligatoire. Une fois tout installe et fonctionnel : pip freeze > requirements.txt
+robomaster
+opencv-python
+numpy
+pytest>=7
+# YOLO (Mohamed, a installer AVANT la connexion au robot) :
+# torch
+# ultralytics

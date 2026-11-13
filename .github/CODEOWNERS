@@ -1,0 +1,29 @@
+# REMPLACER les pseudos par les vrais pseudos GitHub de chacun.
+/core/safety.py                      @pseudo_Lenaic
+/core/sensors.py                     @pseudo_Lenaic
+/control/chassis_ctrl.py             @pseudo_Lenaic
+/behaviors/avoid_obstacles.py        @pseudo_Lenaic
+/behaviors/navigate_a_to_b.py        @pseudo_Lenaic
+/scenarios/s1_navigation.py          @pseudo_Lenaic
+
+/core/camera.py                      @pseudo_Mohamed
+/core/logger.py                      @pseudo_Mohamed
+/perception/detector.py              @pseudo_Mohamed
+/perception/tracker.py               @pseudo_Mohamed
+/control/pid.py                      @pseudo_Mohamed
+/behaviors/follow_person.py          @pseudo_Mohamed
+/scenarios/s2_tracking.py            @pseudo_Mohamed
+
+/perception/object_locator.py        @pseudo_Bilal
+/control/arm_ctrl.py                 @pseudo_Bilal
+/behaviors/pick_place.py             @pseudo_Bilal
+/scenarios/s3_manipulation.py        @pseudo_Bilal
+/tools/calibration_bras.py           @pseudo_Bilal
+
+/main.py                             @PierreOlivier-28
+/config.py                           @PierreOlivier-28
+/core/robot_io.py                    @PierreOlivier-28
+/sim/                                @PierreOlivier-28
+/mission/                            @PierreOlivier-28
+/scenarios/s4_mission_complete.py    @PierreOlivier-28
+/.github/                            @PierreOlivier-28
