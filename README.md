@@ -29,8 +29,8 @@ git config --global init.defaultBranch main
 Choisis un dossier de travail (pas dans OneDrive si possible), puis :
 ```powershell
 cd C:\chemin\vers\ton\dossier
-git clone https://github.com/PierreOlivier-28/robomaster-projet.git
-cd robomaster-projet
+git clone https://github.com/PierreOlivier-28/robomaster-projet_EP.git
+cd robomaster-projet_EP
 ```
 Une fenêtre de connexion GitHub s'ouvre : connecte-toi.
 
@@ -79,7 +79,7 @@ Le principe : **tu travailles sur ta branche, puis une PR relue ajoute ton trava
 
 ### Étape 1 : partir de la dernière version
 ```powershell
-cd robomaster-projet
+cd robomaster-projet_EP
 venv\Scripts\activate
 git checkout main
 git pull
@@ -178,7 +178,7 @@ Les **tests** de ton module vont dans `tests/unit/` (sans robot) et `tests/robot
 ## 6. Organisation du code
 
 ```
-robomaster-projet/
+robomaster-projet_EP/
 ├── main.py            # python main.py s1|s2|s3|mission [--real]
 ├── config.py          # tous les réglages (seuils, vitesses, bras...)
 ├── core/              # bas niveau : connexion, capteurs, caméra, sécurité, logs
