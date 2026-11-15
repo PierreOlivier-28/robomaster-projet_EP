@@ -24,11 +24,23 @@ class Distance:
     def _valide(mm):
         return mm is not None and 0 < mm < 3000
 
-    def front_cm(self):
-        """Distance du capteur avant en cm (config.DISTANCE_INVALIDE_CM si inconnue)."""
-        if len(self._mm) <= config.PORT_AVANT or not self._valide(self._mm[config.PORT_AVANT]):
+    def cm(self, port):
+        """Distance du capteur `port` en cm (config.DISTANCE_INVALIDE_CM si inconnue)."""
+        if len(self._mm) <= port or not self._valide(self._mm[port]):
             return config.DISTANCE_INVALIDE_CM
-        return self._mm[config.PORT_AVANT] / 10.0
+        return self._mm[port] / 10.0
+
+    def front_cm(self):
+        return self.cm(config.PORT_AVANT)
+
+    def left_cm(self):
+        return self.cm(config.PORT_GAUCHE)
+
+    def right_cm(self):
+        return self.cm(config.PORT_DROITE)
+
+    def back_cm(self):
+        return self.cm(config.PORT_ARRIERE)
 
     def min_cm(self):
         """Plus petite distance valide parmi les 4 capteurs."""
