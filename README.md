@@ -1,315 +1,445 @@
-# Projet DJI RoboMaster EP – ESIGELEC 2026/2027
+# Projet DJI RoboMaster EP - ESIGELEC 2026/2027
 
-Robotique mobile et perception, avec 3 scénarios :
-- **S1** : navigation et évitement d'obstacles (Lénaïc)
-- **S2** : tracking d'une personne (Mohamed)
-- **S3** : manipulation d'objets avec le bras (Bilal)
-- **Mission complète** : tout assembler (Pierre-Olivier)
+Robot mobile à roues mecanum (DJI RoboMaster EP), équipe de 4 : **Pierre-Olivier** (intégration, mission), **Lenaic** (évitement, navigation), **Mohamed** (tracking de personne), **Bilal** (prise d'objet).
 
-Le code se développe **chez soi en simulation** (faux robot). On le teste sur le **vrai robot** pendant les séances au labo.
+Quatre scénarios :
+
+| Scénario | Objectif |
+|---|---|
+| **S1** | Aller d'un point A à un point B en évitant les obstacles (décalage latéral) |
+| **S2** | Suivre une personne avec la caméra |
+| **S3** | Prendre un objet et le déposer |
+| **Mission** | Prendre l'objet, aller en B en évitant les obstacles, le déposer |
+
+> **Principe du projet : on développe chez soi, dans un simulateur 2D, et on ne teste sur le vrai robot qu'au labo, pour régler.** Il n'y a qu'un seul robot : tout ce qui peut être vérifié sans lui doit l'être sans lui.
+
+**Sommaire**
+1. [Premier jour : installer son poste](#1-premier-jour--installer-son-poste)
+2. [Utiliser Git et GitHub sans rien casser](#2-utiliser-git-et-github-sans-rien-casser)
+3. [Organisation du code : où mettre quoi](#3-organisation-du-code--où-mettre-quoi)
+4. [Le simulateur 2D](#4-le-simulateur-2d)
+5. [Tester son code](#5-tester-son-code)
+6. [Qui fait quoi et situations à tester](#6-qui-fait-quoi-et-situations-à-tester)
+7. [Passer au vrai robot (labo)](#7-passer-au-vrai-robot-labo)
+8. [Règles d'équipe](#8-règles-déquipe)
+9. [Problèmes fréquents](#9-problèmes-fréquents)
 
 ---
 
-## 1. Installation (à faire UNE SEULE FOIS)
+## 1. Premier jour : installer son poste
+
+À faire **une seule fois**, **avant** de se connecter au Wi-Fi du robot : le mode AP du robot n'a pas d'accès Internet, donc aucune installation n'est possible ensuite.
 
 ### 1.1 Installer les outils
-1. **Git** : https://git-scm.com/download/win (garder toutes les options par défaut).
-2. **Python 3.8** : https://www.python.org/downloads/release/python-3810/ (cocher « Add Python to PATH »). **Python 3.8 est obligatoire** : le SDK du robot ne marche pas avec 3.9 ou plus.
-3. **VS Code** (recommandé) : https://code.visualstudio.com/
-4. Un compte **GitHub** : https://github.com. Donner ton pseudo à Pierre-Olivier pour être invité au dépôt, puis **accepter l'invitation** (reçue par email, ou sur https://github.com/PierreOlivier-28/robomaster-projet_EP/invitations).
+- **Git** : <https://git-scm.com/download/win> (tout laisser par défaut).
+- **Python 3.8** (obligatoire : le SDK `robomaster` ne s'installe pas avec Python 3.9 et plus).
+- **VS Code** (conseillé).
+- Un compte **GitHub**, puis donner son pseudo à Pierre-Olivier pour être invité sur le dépôt (accepter l'invitation reçue par e-mail).
 
-### 1.2 Configurer Git (ouvrir PowerShell)
+Dans PowerShell, vérifier :
 ```powershell
-git config --global user.name "Prénom Nom"
-git config --global user.email "email_de_ton_compte_github@exemple.com"
-git config --global init.defaultBranch main
+git --version
+py -3.8 --version        # doit afficher Python 3.8.x
+```
+
+### 1.2 Se présenter à Git (une fois)
+```powershell
+git config --global user.name  "Prénom Nom"
+git config --global user.email "ton.email@exemple.com"     # le même que sur GitHub
 ```
 
 ### 1.3 Récupérer le projet
-Choisis un dossier de travail (pas dans OneDrive si possible), puis :
+Se placer dans le dossier où ranger ses projets, puis :
 ```powershell
-cd C:\chemin\vers\ton\dossier
 git clone https://github.com/PierreOlivier-28/robomaster-projet_EP.git
 cd robomaster-projet_EP
 ```
-Une fenêtre de connexion GitHub s'ouvre : connecte-toi.
+La première fois, GitHub demande de se connecter dans le navigateur : accepter.
 
-### 1.4 Créer l'environnement Python
+### 1.4 Créer son environnement Python
+Dans le dossier du dépôt :
 ```powershell
-py -3.8 --version
 py -3.8 -m venv venv
-venv\Scripts\activate
+venv\Scripts\activate                 # le prompt affiche maintenant (venv)
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
-- La première commande doit afficher `Python 3.8.x`.
-- Si `activate` est refusé (« l'exécution de scripts est désactivée ») : `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, répondre `O`, puis refaire `venv\Scripts\activate`.
-- Quand l'environnement est actif, `(venv)` s'affiche au début de la ligne. **À refaire à chaque nouveau terminal** : `venv\Scripts\activate`.
+Si PowerShell refuse d'activer le venv : `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, puis recommencer.
+À chaque nouvelle fenêtre PowerShell : se placer dans le dépôt et refaire `venv\Scripts\activate`.
 
 ### 1.5 Vérifier que tout marche
 ```powershell
-python -m pytest
-python main.py s1
+python -m pytest            # doit afficher: 34 passed, 1 deselected
+python main.py sim          # ouvre le simulateur 2D
 ```
-- `pytest` doit afficher **8 passed**.
-- `main.py s1` doit afficher des lignes `front=... cm cmd=...` pendant 10 secondes (le faux robot avance, puis tourne quand un obstacle est proche).
 
-Si ça marche, ton poste est prêt.
-
-### 1.6 Ouvrir le projet dans VS Code (optionnel)
-```powershell
-code .
-```
-VS Code peut proposer d'utiliser l'interpréteur Python du `venv` : accepte. Sinon : `Ctrl+Shift+P` → « Python: Select Interpreter » → choisis celui de `venv`.
+> Mohamed : pour YOLO (`torch`, `ultralytics`), installer et télécharger le modèle **maintenant**, à la maison (décommenter les lignes dans `requirements.txt`, ranger le modèle dans `models/`).
 
 ---
 
-## 2. Vocabulaire Git en 1 minute
+## 2. Utiliser Git et GitHub sans rien casser
 
-| Mot | Signification |
-|---|---|
-| **Dépôt (repo)** | Le dossier du projet, avec tout son historique |
-| **Clone** | Copie du dépôt GitHub sur ton PC (une seule fois) |
-| **Branche** | Une copie de travail à toi. Tu y fais tes modifications sans toucher au projet principal |
-| **`main`** | La branche principale : **toujours du code qui marche**. On n'y travaille jamais directement |
-| **Commit** | Une sauvegarde de tes modifications, avec un message |
-| **Push** | Envoyer tes commits de ton PC vers GitHub |
-| **Pull** | Récupérer les modifications des autres depuis GitHub |
-| **Pull request (PR)** | Demande pour ajouter ta branche à `main`. Quelqu'un relit avant |
+**Idée générale.** Le dépôt GitHub est la version de référence. Chacun en a une **copie sur son PC**. On ne modifie jamais la branche `main` directement : on travaille sur **sa propre branche**, puis on propose ses changements par une **Pull Request** (PR) que quelqu'un relit avant de les fusionner.
 
-Le principe : **tu travailles sur ta branche, puis une PR relue ajoute ton travail à `main`**. Ainsi, rien ne casse le travail des autres.
+```
+ GitHub (main) ──pull──► mon PC (main) ──checkout -b──► ma branche
+                                                          │ je modifie, je teste
+ GitHub (main) ◄──merge PR── GitHub (ma branche) ◄──push──┘
+```
 
----
+### 2.1 Le cycle complet (à suivre à chaque fois)
 
-## 3. Routine de travail (à chaque fois)
-
-### Étape 1 : partir de la dernière version
+**① Partir de `main` à jour**
 ```powershell
-cd robomaster-projet_EP
-venv\Scripts\activate
 git checkout main
 git pull
 ```
 
-### Étape 2 : créer ta branche (une par tâche)
+**② Créer SA branche** (un sujet = une branche ; nom clair : `feat/tracking-3m`, `fix/evitement-coin`, `docs/readme`)
 ```powershell
-git checkout -b s2/tracking-yolo
+git checkout -b feat/mon-sujet
 ```
-Nom de branche : `scenario/sujet`, par exemple `s1/evitement-tof`, `s3/pince`, `core/safety`. Pas d'espaces ni d'accents.
 
-### Étape 3 : coder et tester
-Modifie **tes fichiers** (voir section 5), puis lance :
+**③ Travailler** : modifier le code, le lancer dans le simulateur, écrire un test (voir parties 4 et 5).
+
+**④ Vérifier avant d'envoyer**
 ```powershell
-python -m pytest
+python -m pytest            # TOUT doit être vert
+git status                  # liste ce qui a changé : rien d'inconnu ? (pas de venv, pas de gros fichiers)
 ```
-**Tous les tests doivent passer** avant d'aller plus loin.
 
-### Étape 4 : sauvegarder (commit)
+**⑤ Enregistrer (commit)**
 ```powershell
-git status                              # voir ce qui a changé
-git add perception/detector.py          # ajouter UNIQUEMENT tes fichiers
-git commit -m "Détecteur YOLO : détection de personnes sur webcam"
+git add behaviors/follow_person.py tests/unit/test_tracking.py     # ses fichiers, explicitement
+git commit -m "Tracking : suivi d'une personne a 3 m"
 ```
-- Un message clair qui dit ce que tu as fait.
-- Fais de **petits commits** souvent (toutes les heures ou à chaque étape).
-- Évite `git add .` sauf si `git status` montre que seuls tes fichiers ont changé.
+Un message de commit dit **ce qu'on a fait**, pas « modif » ni « test ».
 
-### Étape 5 : envoyer sur GitHub (push)
-La première fois pour cette branche :
+**⑥ Envoyer sur GitHub**
 ```powershell
-git push -u origin s2/tracking-yolo
+git push -u origin feat/mon-sujet
 ```
-Les fois suivantes : `git push`.
+(la 2ᵉ fois sur la même branche, `git push` suffit).
 
-### Étape 6 : ouvrir la pull request
-1. Sur GitHub, ouvre le dépôt. Un bandeau jaune **Compare & pull request** apparaît : clique dessus.
-2. Remplis la description et la **checklist** (tests, robot, registre IA).
-3. À droite, dans **Reviewers**, choisis un coéquipier (voir section 5).
-4. Si ton code doit être testé sur le robot, ajoute le label **`à-tester-robot`** (colonne **Labels**, à droite).
-5. Clique sur **Create pull request** (pas « draft » : un brouillon ne peut pas être fusionné).
+**⑦ Ouvrir la Pull Request** : sur GitHub, ouvrir le dépôt, cliquer sur le bandeau jaune **Compare & pull request**, remplir la description et la checklist, choisir un relecteur à droite (*Reviewers*), puis **Create pull request**. Si le code doit être essayé sur le robot, ajouter le label `a-tester-robot`.
 
-### Étape 7 : relire (si on te demande une relecture)
-1. Ouvre la PR, onglet **Files changed**.
-2. Lis le code. Pour commenter une ligne, clique sur le `+` bleu à gauche de la ligne.
-3. En haut à droite : **Review changes** → **Approve** (ou **Request changes** s'il y a un problème) → **Submit review**.
-4. Ce n'est pas à toi de fusionner si ce n'est pas ta PR : c'est l'auteur qui clique ensuite sur **Merge pull request**, quand tout est vert.
+**⑧ Relecture, puis merge.** Le relecteur lit, commente ou approuve (*Approve*). Une fois approuvée : **Merge pull request** → **Confirm merge** → **Delete branch**.
 
-### Étape 8 : fusionner et nettoyer
-Sur GitHub, l'auteur clique sur **Merge pull request** en gardant le mode **Create a merge commit** (pas « Squash » ni « Rebase »), puis **Confirm merge** et **Delete branch**. Ensuite, sur ton PC :
+**⑨ Nettoyer chez soi**
 ```powershell
 git checkout main
 git pull
-git branch -d s2/tracking-yolo
+git branch -d feat/mon-sujet
 ```
-Si Git répond « not fully merged » alors que ta PR est bien fusionnée sur GitHub, utilise `git branch -D s2/tracking-yolo`. Puis recommence à l'étape 1 pour la tâche suivante.
+Puis on recommence au ① pour le sujet suivant.
 
----
+### 2.2 Récupérer le travail des autres pendant qu'on travaille
+Si un coéquipier a fusionné une PR pendant que vous travaillez :
+```powershell
+git fetch origin
+git merge origin/main        # ramène les nouveautés dans sa branche
+python -m pytest
+```
+Si Git signale un **conflit**, ne pas paniquer : ouvrir le fichier, repérer les lignes entre `<<<<<<<` et `>>>>>>>`, garder la bonne version (en parlant avec l'auteur), supprimer les marqueurs, puis `git add` du fichier et `git commit`.
 
-## 4. Règles d'or (pour ne rien casser)
+### 2.3 Les règles pour ne rien casser
+- ❌ **Jamais** de travail directement sur `main`. Avant de modifier quoi que ce soit : `git branch` doit afficher une branche `feat/...` (l'étoile `*`).
+- ❌ **Jamais** de `git push --force`, ni de `git reset --hard` sans en parler.
+- ✅ **Toujours** `git pull` sur `main` avant de créer une branche.
+- ✅ **Toujours** `python -m pytest` vert avant un push.
+- ✅ Ne modifier que **ses fichiers** (voir `.github/CODEOWNERS` et la partie 6). Pour toucher au fichier d'un autre : le prévenir, ou lui demander.
+- ✅ Les réglages (vitesses, seuils, ports) se font **uniquement** dans `config.py`.
+- ✅ Petites PR, fréquentes : une PR de 30 lignes se relit en 5 minutes, une PR de 800 lignes ne se relit pas.
 
-**À FAIRE**
-- `git pull` sur `main` **avant** de créer une branche.
-- Travailler **uniquement sur une branche**, jamais sur `main`.
-- Lancer `python -m pytest` avant chaque push.
-- Faire de petits commits avec des messages clairs.
-- Déclarer l'IA utilisée dans le Registre IA (fichier de gestion de projet).
-- Demander dans le groupe avant de modifier le fichier de quelqu'un d'autre.
-
-**À NE JAMAIS FAIRE**
-- ❌ `git push --force` (efface le travail des autres).
-- ❌ Commiter le dossier `venv/`, des poids YOLO (`.pt`), des gros fichiers ou le dossier `logs/`. Le `.gitignore` les bloque normalement.
-- ❌ Modifier `config.py`, `core/robot_io.py` ou `main.py` sans prévenir Pierre-Olivier.
-- ❌ Copier-coller du code d'une IA sans le comprendre : on doit pouvoir l'expliquer en soutenance.
-- ❌ Fermer une PR ou supprimer une branche qui n'est pas la tienne.
-- ❌ Changer l'interface (les noms et paramètres des fonctions) d'un module sans prévenir ceux qui l'utilisent.
-
----
-
-## 5. Qui s'occupe de quoi
-
-Chacun **ne modifie que ses fichiers**. Cela évite 95 % des conflits.
-
-| Personne | Fichiers |
+### 2.4 Commandes utiles
+| Je veux... | Commande |
 |---|---|
-| **Lénaïc** | `core/safety.py`, `core/sensors.py`, `control/chassis_ctrl.py`, `behaviors/avoid_obstacles.py`, `behaviors/navigate_a_to_b.py`, `scenarios/s1_navigation.py` |
-| **Mohamed** | `core/camera.py`, `core/logger.py`, `perception/detector.py`, `perception/tracker.py`, `control/pid.py`, `behaviors/follow_person.py`, `scenarios/s2_tracking.py` |
-| **Bilal** | `perception/object_locator.py`, `control/arm_ctrl.py`, `behaviors/pick_place.py`, `scenarios/s3_manipulation.py`, `tools/calibration_bras.py` |
-| **Pierre-Olivier** | `main.py`, `config.py`, `core/robot_io.py`, `sim/`, `mission/`, `scenarios/s4_mission_complete.py`, `.github/`, README |
+| Savoir sur quelle branche je suis | `git branch` |
+| Voir ce que j'ai modifié | `git status` puis `git diff` |
+| Annuler mes modifications d'**un** fichier (pas encore commité) | `git restore chemin/du/fichier.py` |
+| Voir l'historique | `git log --oneline -10` |
+| Changer de branche | `git checkout nom-de-la-branche` |
+| Supprimer une branche locale déjà fusionnée | `git branch -d nom` |
 
-Les **tests** de ton module vont dans `tests/unit/` (sans robot) et `tests/robot/` (avec robot).
+### 2.5 Quand tout est cassé
+J'ai commité sur `main` par erreur (avant le push) :
+```powershell
+git branch feat/mon-sujet          # garde mon commit sur une nouvelle branche
+git reset --hard origin/main       # remet main local comme GitHub
+git checkout feat/mon-sujet
+```
+En cas de doute, **ne rien forcer** : copier le dossier du dépôt ailleurs par sécurité, puis demander à Pierre-Olivier.
 
-**Relecteurs** (revue croisée) : Lénaïc relit Mohamed, Mohamed relit Bilal, Bilal relit Lénaïc, et tout le monde relit Pierre-Olivier.
+> Les avertissements « LF will be replaced by CRLF » sous Windows sont normaux et sans danger.
 
 ---
 
-## 6. Organisation du code
+## 3. Organisation du code : où mettre quoi
 
 ```
 robomaster-projet_EP/
-├── main.py            # python main.py s1|s2|s3|mission [--real]
-├── config.py          # tous les réglages (seuils, vitesses, bras...)
-├── core/              # bas niveau : connexion, capteurs, caméra, sécurité, logs
-├── sim/               # faux robot pour travailler sans robot
-├── perception/        # YOLO, tracking, localisation d'objet
-├── control/           # PID, déplacement, bras
-├── behaviors/         # évitement, suivi, navigation, saisie
-├── mission/           # machine à états, arbitre de priorités
-├── scenarios/         # un fichier par scénario
-├── tests/unit/        # tests sans robot
-├── tests/robot/       # tests avec robot (au labo)
-├── tools/             # outils (calibration, rejeu vidéo)
-├── data/              # petits échantillons (vidéos, logs)
-├── models/            # poids YOLO (non versionnés)
-└── logs/              # journaux (non versionnés)
+├── main.py                   point d'entrée : python main.py s1|s2|s3|mission|sim [--real]
+├── config.py                 TOUS les réglages (vitesses, seuils, ports capteurs, bras...)
+├── scenarios/                lancer un scénario sur le VRAI robot (s1, s2, s3, s4_mission_complete)
+├── mission/                  enchaîner les étapes : state_machine.py, arbiter.py (priorités)
+├── behaviors/                DÉCIDER quoi faire : avoid_obstacles, navigate_a_to_b, follow_person, pick_place
+├── perception/               VOIR : detector (YOLO), tracker, object_locator
+├── control/                  AGIR : chassis_ctrl (roues), arm_ctrl (bras/pince), pid
+├── core/                     BASE : robot_io, sensors, odometry, camera, safety, logger
+├── sim/                      simulateur 2D et faux robot (ne pas casser)
+├── tests/unit/               tests sans robot (pytest)
+├── tests/robot/              tests avec robot (pytest -m robot)
+├── tools/                    outils (calibration du bras, rejeu vidéo)
+├── models/  data/  logs/     modèles YOLO, données, journaux (non versionnés)
+└── docs/
 ```
 
-Les dépendances vont **uniquement vers le bas** :
-`scenarios → mission → behaviors → perception / control → core`. Un module ne doit jamais importer un module situé plus haut.
+**Les dépendances vont vers le bas uniquement** : `scenarios → mission → behaviors → perception / control → core`. Un fichier de `behaviors/` n'importe jamais un fichier de `scenarios/`.
 
-Règles de code :
-- Un comportement **ne pilote pas le robot** : il retourne une commande `(vx, vy, vz)`.
-- Tous les réglages sont dans `config.py`, jamais en dur dans le code.
-- Toute commande de vitesse a un timeout, et tout programme finit par un arrêt (`finally`).
-- Une seule connexion robot par exécution (`core/robot_io.py`).
-
----
-
-## 7. Mode simulation et mode robot
-
-| | Simulation (chez soi) | Vrai robot (au labo) |
+### Où ajouter mon code ?
+| Je veux... | Je mets le code dans | Mon test va dans |
 |---|---|---|
-| Lancer | `python main.py s1` | `python main.py s1 --real` |
-| Tests | `python -m pytest` | `python -m pytest -m robot` |
+| Décider quoi faire (suivre, éviter, saisir) | `behaviors/` | `tests/unit/` |
+| Voir (caméra, YOLO, position de l'objet) | `perception/` | `tests/unit/` (avec le faux détecteur) |
+| Agir (roues, bras, pince) | `control/` | `tests/unit/` |
+| Enchaîner les étapes d'une mission | `mission/` | `tests/unit/test_mission.py` |
+| Lancer sur le vrai robot | `scenarios/` | `tests/robot/` |
+| Changer une vitesse, un seuil, un port | `config.py` | - |
+| Ajouter une situation au simulateur | `sim/world2d.py` | `tests/unit/test_world2d.py` |
 
-Au labo :
-1. **Installer tout ce qui demande Internet AVANT** de se connecter au Wi-Fi du robot (pip, modèles YOLO) : le Wi-Fi du robot n'a pas Internet.
-2. Se connecter au Wi-Fi `RMEP-xxxxxx`.
-3. Un seul PC connecté au robot à la fois (le Dell G15 de référence).
-4. Pendant les essais, **enregistrer des vidéos et des logs** dans `data/` : on pourra rejouer chez soi (`python tools/rejouer_video.py data/essai.mp4`).
-5. Après la séance : noter les résultats dans le Plan de tests, retirer le label `à-tester-robot` des PR validées, et Pierre-Olivier crée un tag Git (`robot-ok-AAAA-MM-JJ`).
+### La règle la plus importante
+Un comportement (`behaviors/`) est une **fonction qui renvoie une commande `(vx, vy, vz)`** ; **il ne pilote jamais le robot lui-même**. C'est la boucle (celle du simulateur ou celle d'un scénario) qui envoie la commande. C'est ce qui permet d'utiliser **exactement le même code** dans le simulateur et sur le vrai robot.
 
----
+Convention du SDK : `vx` > 0 avance (m/s), `vy` > 0 va vers la **droite** (m/s), `vz` > 0 tourne vers la **droite**, sens horaire (°/s).
 
-## 8. Problèmes fréquents
-
-**« Mon `git push` est refusé sur `main` »**
-Normal : `main` est protégé. Crée une branche avec tes commits :
-```powershell
-git checkout -b ma-branche
-git push -u origin ma-branche
-```
-
-**« J'ai commité sur `main` par erreur » (avant le push)**
-```powershell
-git checkout -b ma-branche          # ta branche récupère ton commit
-git checkout main
-git reset --hard origin/main        # main revient comme sur GitHub
-git checkout ma-branche
-```
-Attention : `reset --hard` efface les modifications non commitées de `main`. Fais-le seulement si tout est déjà dans ta branche.
-
-**« J'ai modifié un fichier par erreur et je veux annuler »**
-```powershell
-git restore chemin/du/fichier.py    # revient à la dernière version commitée
-```
-
-**« J'ai ajouté un mauvais fichier avec `git add` »**
-```powershell
-git restore --staged chemin/du/fichier.py
-```
-
-**« Ma branche est en retard sur `main` / j'ai un conflit »**
-```powershell
-git checkout main
-git pull
-git checkout ma-branche
-git merge main
-```
-S'il y a un conflit, Git l'indique et marque le fichier ainsi :
-```
-<<<<<<< HEAD
-ta version
-=======
-la version des autres
->>>>>>> main
-```
-Ouvre le fichier dans VS Code : il propose *Accept Current / Incoming / Both*. Garde la bonne version, supprime les lignes `<<<<<<<`, `=======` et `>>>>>>>`, puis :
-```powershell
-git add le_fichier.py
-git commit -m "Résolution du conflit avec main"
-python -m pytest
-git push
-```
-Si tu hésites, **demande avant** de valider : on le règle à deux.
-
-**« `pytest` : No module named pytest » ou « No module named robomaster »**
-Le venv n'est pas activé : `venv\Scripts\activate` (le `(venv)` doit apparaître).
-
-**« Ça marche chez moi mais pas chez un autre »**
-Vérifier `python --version` (3.8.x) et refaire `pip install -r requirements.txt`.
-
-**« Je ne sais plus où j'en suis »**
-```powershell
-git status          # fichiers modifiés et branche actuelle
-git branch          # liste des branches (l'étoile = la branche actuelle)
-git log --oneline   # derniers commits
-```
-**En cas de doute, ne fais rien de destructif : demande dans le groupe.**
+Autre règle : un module réel doit renvoyer **le même format que son faux**. Exemple : `perception/detector.py` renvoie une liste de `(x1, y1, x2, y2, classe, confiance)`, comme `sim/fake_detector.py`. Ainsi, passer du faux au vrai ne change rien au comportement.
 
 ---
 
-## 9. Aide-mémoire
+## 4. Le simulateur 2D
+
+Une vue **de dessus** (comme turtlesim) d'une arène de 4 m × 3 m, avec le robot, des obstacles, une personne, un objet et une zone de dépôt. Les comportements utilisés sont **exactement ceux du projet**, branchés sur un faux robot. Aucune dépendance supplémentaire : OpenCV et numpy suffisent.
 
 ```powershell
-git checkout main                    # aller sur main
-git pull                             # récupérer les nouveautés
-git checkout -b s2/ma-tache          # créer ta branche
-git status                           # voir l'état
-git add fichier.py                   # préparer un fichier
-git commit -m "message clair"        # sauvegarder
-git push -u origin s2/ma-tache       # envoyer (1ère fois)
-git push                             # envoyer (ensuite)
-git branch -d s2/ma-tache            # supprimer la branche après merge
-python -m pytest                     # tests (sans robot)
-python main.py s1                    # lancer en simulation
+python main.py sim
 ```
+
+### Ce qu'on voit
+- le robot (rouge s'il touche quelque chose), son champ de caméra, sa trace ;
+- les 4 rayons des capteurs de distance ToF (rouges quand l'obstacle est à moins de 50 cm) ;
+- le point de départ **A**, le but **B**, les obstacles, la personne, l'objet, la zone de dépôt ;
+- à droite : le mode, **l'état du comportement** (ex. « obstacle : décalage vers la droite »), la commande envoyée, les valeurs des capteurs, l'odométrie, l'état du bras et de la pince, et la **vue caméra** simulée.
+
+### Les modes (touches du clavier, fenêtre active)
+| Touche | Mode | Ce qui se passe |
+|---|---|---|
+| `1` | Évitement A→B | le robot va de A vers B ; devant un obstacle (< 50 cm) il se **décale sur le côté** par translation, longe l'obstacle puis reprend le cap sur B |
+| `2` | Tracking | une personne marche devant lui, il la suit (sans obstacles, pour tester le suivi seul) |
+| `3` | Prise d'objet | il cherche l'objet, s'approche, le saisit |
+| `4` | Mission complète | il prend l'objet, va en B en évitant, le dépose dans la zone |
+| `m` | Manuel | `w a s d` (déplacements), `q e` (rotation) |
+
+Autres touches : `r` remet à zéro, `espace` pause, `p` personne qui marche / s'arrête, `ESC` ou `x` quitte.
+
+### La souris
+| Action | Effet |
+|---|---|
+| Clic gauche (mode 1) | change le but B |
+| Clic gauche sur la personne, glisser (mode 2) | déplace la personne (elle s'arrête de marcher) |
+| Clic gauche (modes 3 et 4) | place l'objet à cet endroit |
+| Clic droit | ajoute un obstacle (ou le retire s'il y en a déjà un) |
+
+### Ce que la simulation prouve, et ne prouve pas
+Elle **valide la logique** (le robot fait-il la bonne chose dans cette situation ?). Elle **ne valide pas les réglages** : sur le vrai robot il y a du bruit, des glissements, des délais, une vraie caméra. Les gains et seuils se terminent au labo.
+
+---
+
+## 5. Tester son code
+
+Deux niveaux, **dans cet ordre** :
+
+1. **À l'œil** : `python main.py sim`, on reproduit la situation à la souris (voir partie 6).
+2. **Automatique** : on écrit la même situation dans un test `pytest`, **sans fenêtre**. Il restera dans le dépôt et protégera le code des régressions.
+
+```powershell
+python -m pytest                                  # tous les tests sans robot
+python -m pytest tests/unit/test_tracking.py      # un seul fichier
+python -m pytest -k tracking                      # les tests dont le nom contient "tracking"
+python -m pytest -m robot                         # tests AVEC robot (au labo seulement)
+```
+
+### Modèle de test (tracking : personne à 3 m, puis cachée derrière un obstacle)
+À placer dans `tests/unit/test_tracking.py`. La simulation tourne par pas de 0,05 s, sans fenêtre.
+
+```python
+import math
+
+from behaviors.follow_person import Suiveur
+from mission.arbiter import ARRET, choisir
+from sim.fake_detector import FakeDetector
+from sim.world2d import World
+
+
+def _suivre(w, duree_s=30.0):
+    """Fait tourner la simulation sans fenetre. Retourne (distance finale, pas sans cible)."""
+    det, suiveur = FakeDetector(w), Suiveur()
+    perdus = 0
+    for _ in range(int(duree_s / 0.05)):
+        d = det.detect()
+        avant = w.tof_cm()[0]
+        suivi = suiveur.step(d[0][:4] if d else None, 0.05)
+        perdus += 0 if d else 1
+        cmd = choisir([ARRET if avant < 25 else None, suivi])
+        w.set_cmd(*cmd, 1.0)
+        w.step(0.05)
+    x, y, _ = w.pose
+    return math.hypot(w.person[0] - x, w.person[1] - y), perdus
+
+
+def test_tracking_personne_a_3_metres():
+    w = World()
+    w.obstacles = []
+    w.set_person(w.pose[0] + 3.0, w.pose[1])          # immobile, 3 m devant
+    w.person_marche = False
+    distance, perdus = _suivre(w)
+    assert 0.8 < distance < 1.4                       # il s'est rapproché (cible ~1 m)
+    assert perdus == 0 and not w.collision
+
+
+def test_tracking_personne_cachee_derriere_un_obstacle():
+    w = World()
+    w.obstacles = []
+    w.ajouter_obstacle(w.pose[0] + 1.5, w.pose[1], 0.5)   # boîte entre le robot et la personne
+    w.set_person(w.pose[0] + 3.0, w.pose[1])
+    w.person_marche = False
+    distance, perdus = _suivre(w, 10.0)
+    assert perdus > 0                                  # la cible n'est pas visible
+    assert not w.collision                             # et le robot ne fonce pas dans la boîte
+```
+
+Autres modèles à copier : `tests/unit/test_navigation.py` (évitement, navigation), `test_manipulation.py` (prise d'objet), `test_mission.py` (mission complète), `test_world2d.py` (simulateur).
+
+**Un bon test** décrit **une situation** (où sont le robot, la personne, les obstacles) et vérifie **un résultat mesurable** (distance finale, absence de collision, état atteint). Il ne dépend pas d'une fenêtre ni du hasard.
+
+---
+
+## 6. Qui fait quoi et situations à tester
+
+Légende : **OK** = fait et testé en simulation · **À FAIRE** = reste à écrire · **À RÉGLER** = existe, à calibrer sur le robot.
+
+### État d'avancement global
+| Brique | Fichier | État | Responsable |
+|---|---|---|---|
+| Évitement A→B (décalage latéral) | `behaviors/navigate_a_to_b.py` | OK, à régler | Lenaic |
+| Évitement simple (S1, sans but) | `behaviors/avoid_obstacles.py` | OK | Lenaic |
+| Suivi de personne (asservissement) | `behaviors/follow_person.py` | OK, à régler | Mohamed |
+| Détecteur de personne réel (YOLO) | `perception/detector.py` | **À FAIRE** (squelette) | Mohamed |
+| Tracker avec identifiant | `perception/tracker.py` | **À FAIRE** (squelette) | Mohamed |
+| Position de l'objet dans l'image | `perception/object_locator.py` | **À FAIRE** (squelette) | Bilal |
+| Approche, saisie, dépose | `behaviors/pick_place.py` | OK, à régler | Bilal |
+| Bras / pince, positions réelles | `control/arm_ctrl.py`, `POS_BRAS` | À RÉGLER | Bilal |
+| Outil de calibration du bras | `tools/calibration_bras.py` | **À FAIRE** | Bilal |
+| Machine d'états de la mission | `mission/state_machine.py` | OK | Pierre-Olivier |
+| Arbitre de priorités | `mission/arbiter.py` | OK | Pierre-Olivier |
+| Scénarios réels S2, S3, mission | `scenarios/s2…`, `s3…`, `s4…` | **À FAIRE** (squelettes) | chacun le sien |
+| Simulateur 2D | `sim/` | OK | tous (ne pas casser) |
+
+> Aujourd'hui, `python main.py s2 --real` (et `s3`, `mission`) **ne fait rien** : les scénarios réels sont des squelettes. Tout ce qui fonctionne, fonctionne dans le simulateur. Pour chaque scénario réel, recopier la boucle du mode correspondant de `sim/demo.py` (lire les capteurs, appeler le comportement, envoyer la commande) en remplaçant les faux éléments par les vrais.
+
+### Mohamed : tracking (`behaviors/follow_person.py`, `perception/`)
+
+| # | Situation | Comment la créer dans le simulateur | Résultat attendu | État |
+|---|---|---|---|---|
+| T1 | Personne qui marche | touche `2` | le robot la garde dans l'image, à ~1 m | OK |
+| T2 | Personne immobile à **3 m** | touche `2`, `p` pour l'arrêter, la glisser à ~3 m devant le robot | il avance et s'arrête à ~1 m | OK (1,06 m, 0 collision) |
+| T3 | Personne décalée sur le côté | la glisser en diagonale | il tourne, la centre, avance | OK |
+| T4 | Personne **cachée derrière un obstacle** | touche `2`, clic droit pour poser un obstacle entre eux | cible perdue : le robot **s'arrête**, sans foncer dans l'obstacle | OK (comportement voulu) |
+| T5 | La personne sort du champ puis revient | la glisser hors du champ, puis la ramener | arrêt, puis reprise du suivi | à vérifier |
+| T6 | **Suivre ET contourner** un obstacle | obstacle sur le trajet, personne encore visible | le robot se décale, puis reprend le suivi | **À FAIRE** : seul un arrêt d'urgence à 25 cm existe |
+
+**T6 est le vrai travail de Mohamed en simulation** : dans `mission/arbiter.py`, `choisir([...])` doit recevoir, par ordre de priorité, l'évitement (décalage latéral) puis le suivi. À décider avec Lenaic.
+
+Pour le vrai robot : `perception/detector.py` (YOLO, modèle chargé **une seule fois**), puis `perception/tracker.py` (garder la même personne), puis `scenarios/s2_tracking.py` (boucle du mode `2` de `sim/demo.py`, `FakeDetector` remplacé par `Detector`).
+
+### Lenaic : évitement et navigation (`behaviors/avoid_obstacles.py`, `behaviors/navigate_a_to_b.py`)
+
+| # | Situation | Comment la créer | Résultat attendu | État |
+|---|---|---|---|---|
+| E1 | Obstacle sur la ligne A→B | touche `1` (2 obstacles par défaut) | décalage latéral, il longe l'obstacle, arrive en B | OK (~18 s, 0 collision) |
+| E2 | B change en cours de route | clic gauche ailleurs | il repart vers le nouveau B | OK |
+| E3 | Obstacle posé juste devant le robot | clic droit devant lui | décalage vers le côté le plus libre | OK |
+| E4 | B collé à un mur | clic gauche près du bord | il arrive, sans prendre le mur pour un obstacle | OK |
+| E5 | Poche / impasse entre deux obstacles | clic droit pour fermer un passage | il tente l'autre côté, ou signale l'échec | **LIMITE** : ~56 cas sur 60 réussis en positions aléatoires |
+| E6 | Coin d'obstacle non vu par un capteur | obstacle de biais | pas de collision | détection de blocage présente, à surveiller |
+
+À faire : traiter E5 et E6, puis `scenarios/s1_navigation.py` pour le vrai robot (avec `Navigateur`, comme le mode `1` de `sim/demo.py`), puis régler `SEUIL_OBSTACLE_CM`, `VITESSE_LATERALE`, `KP_ROT_NAV` dans `config.py`.
+
+### Bilal : prise d'objet (`behaviors/pick_place.py`, `control/arm_ctrl.py`, `perception/object_locator.py`)
+
+| # | Situation | Comment la créer | Résultat attendu | État |
+|---|---|---|---|---|
+| P1 | Objet devant, visible | touche `3`, clic gauche pour placer l'objet | recherche, approche, prise, état `FIN` | OK |
+| P2 | Objet sur le côté | placer l'objet de biais | le robot tourne pour le chercher | OK |
+| P3 | Objet derrière un obstacle ou hors de vue au départ | clic droit + clic gauche | message d'erreur clair, pas de blocage | **LIMITE** : ~12 positions sur 18 réussies |
+| P4 | Prise ratée (objet non tenu) | - | retour à la recherche ou erreur | **À FAIRE** côté vrai robot |
+| P5 | Mission complète | touche `4` | objet déposé dans la zone | OK |
+
+Pour le vrai robot : `perception/object_locator.py` (renvoie `(cx, taille)` ou `None`, comme `sim/fake_object_locator.py`), calibrer `POS_BRAS` dans `config.py` avec `tools/calibration_bras.py`, **détecter la prise réelle** (`gripper.sub_status`) car `Arm.objet_saisi()` renvoie aujourd'hui toujours `True`, puis `scenarios/s3_manipulation.py`.
+
+### Pierre-Olivier : intégration (`mission/`, `scenarios/s4_mission_complete.py`)
+- relire les PR, garder `main` vert, fusionner ;
+- écrire `scenarios/s4_mission_complete.py` (boucle du mode `4` de `sim/demo.py`) ;
+- vérifier que les modules de Mohamed, Lenaic et Bilal s'enchaînent dans `mission/state_machine.py` ;
+- au labo : vérifier `PORT_*` et le sens du yaw avant tout autre test.
+
+---
+
+## 7. Passer au vrai robot (labo)
+
+**Étapes pour chaque fonction :**
+1. **Simulation** : écrire le comportement, le voir dans le simulateur, ajouter un test.
+2. **Remplacer le faux par le vrai** : `FakeDetector` → `Detector`, `FakeObjectLocator` → `object_locator`. Même format de sortie, donc le comportement ne change pas.
+3. **Robot** : PR avec le label `a-tester-robot`, test au labo, réglage dans `config.py`, puis tag Git quand ça marche.
+
+**Se connecter au robot.** Robot allumé en mode AP, PC connecté au Wi-Fi `RMEP-xxxxxx` (pas d'Internet pendant ce temps) :
+```powershell
+python main.py s1 --real
+python -m pytest -m robot
+```
+
+**À vérifier EN PREMIER au labo (avant tout réglage) :**
+- le numéro de chaque capteur ToF (`PORT_AVANT`, `PORT_DROITE`, `PORT_ARRIERE`, `PORT_GAUCHE` dans `config.py`) ;
+- le sens et l'unité du `yaw` de l'odométrie (positif vers la droite, en degrés, dans le simulateur) ;
+- les positions du bras (`POS_BRAS`) et la détection de prise de la pince.
+
+**Après une séance robot qui marche** : `git tag robot-ok-AAAA-MM-JJ` puis `git push origin robot-ok-AAAA-MM-JJ`, et noter les essais dans le Plan de tests. Un tag `robot-ok-…` désigne une version **qui a marché sur le robot** : en cas de problème, on peut y revenir.
+
+---
+
+## 8. Règles d'équipe
+
+- Jamais de push direct sur `main` : **branche + Pull Request + 1 relecture**.
+- Chacun ne modifie que ses fichiers (voir `.github/CODEOWNERS`).
+- `python -m pytest` vert avant chaque PR.
+- Réglages uniquement dans `config.py`.
+- Tout test sur robot est noté dans le Plan de tests ; tag Git après chaque séance robot réussie.
+- Utilisation d'une IA : l'écrire dans le Registre IA.
+- Une seule personne à la fois sur le robot : se coordonner pour les créneaux.
+
+---
+
+## 9. Problèmes fréquents
+
+| Symptôme | Cause et solution |
+|---|---|
+| `pip install robomaster` échoue | Mauvaise version de Python : refaire le venv avec `py -3.8 -m venv venv` |
+| `pytest` « non reconnu » | Le venv n'est pas activé : `venv\Scripts\activate` |
+| `python main.py sim` : pas de fenêtre | Installer `opencv-python` dans le venv : `pip install -r requirements.txt` |
+| PowerShell refuse `activate` | `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` |
+| `git push` refusé : `src refspec ... does not match any` | La branche n'existe pas : voir 2.5, ou `git checkout -b feat/mon-sujet` |
+| `git push` refusé : `main` protégée | Normal : on pousse sa branche, pas `main` |
+| `git push` refusé : le distant a avancé | `git fetch origin`, `git merge origin/main`, `python -m pytest`, `git push` |
+| Conflit lors du merge | Voir 2.2 |
+| `git branch -d` refuse (not fully merged) | La PR n'est pas encore fusionnée, ou `git pull` n'a pas été fait sur `main` |
+| Le robot va du mauvais côté au labo | Vérifier `PORT_*` et le sens du yaw (partie 7) |
+| Le simulateur passe, le robot échoue | Normal : la simulation valide la logique, pas les réglages. Régler dans `config.py` |
